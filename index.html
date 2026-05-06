@@ -578,10 +578,10 @@ function generateFinalImage() {
     var frameImg = new Image();
     frameImg.crossOrigin = 'anonymous';
 
-    /* ─── Frame1 is stored in the database as "REUSLT_AWAAZ.png" ───
+    /* ─── Frame1 is stored in the database as "Mahavir_Logo.png" ───
        In production replace this src with your DB/CDN URL.
        For local use the file is loaded from the same directory.       */
-    frameImg.src = 'REUSLT_AWAAZ.png';
+    frameImg.src = 'Mahavir_Logo.png';
 
     frameImg.onload = function() {
       renderAll(ctx, W, H, userImg, frameImg);
