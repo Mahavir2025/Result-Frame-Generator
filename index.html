@@ -626,6 +626,7 @@ function renderAll(ctx, W, H, userImg, frameImg) {
   ctx.textAlign = 'left';
   ctx.textBaseline = 'alphabetic';
 
+
   /* Auto font-size: shrink if percentage string is long (e.g. "100.00") */
   var pctString = state.percentage + '%';
   var pctSize = pctString.length <= 5 ? 160 : 130; /* e.g. "99.98%" = 6 chars → 130 */
@@ -678,7 +679,7 @@ function renderAll(ctx, W, H, userImg, frameImg) {
 
   document.getElementById('downloadBtn').onclick = function() {
     var a = document.createElement('a');
-    a.download = 'StudentsKiAwaaz_' + state.name.replace(/ /g,'_') + '_Result2026.png';
+    a.download = 'MahavirCLasses_' + state.name.replace(/ /g,'_') + '_Result2026.png';
     a.href = dataUrl;
     a.click();
   };
