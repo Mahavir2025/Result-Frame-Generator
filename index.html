@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Mahavir Classes – School Unit Test Result</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--gold:#F5C842;--gold2:#E7A51C;--teal:#10C8B5;--navy:#07101F;--card:#13213A;--text:#F5F7FB;--muted:#9EABC0}
+body{font-family:Arial,Helvetica,sans-serif;background:radial-gradient(circle at 20% 0%,#15304b,transparent 38%),#07101F;color:var(--text);min-height:100vh}
+.header{text-align:center;padding:22px 15px 13px;border-bottom:1px solid rgba(245,200,66,.18)}
+.header-title{font-size:22px;font-weight:800;color:var(--gold)}
+.header-sub{font-size:12px;color:var(--muted);margin-top:5px}
+.wrap{width:min(560px,100%);margin:auto;padding:18px 14px 45px}
+.card{background:#13213A;border:1px solid rgba(245,200,66,.18);border-radius:18px;padding:18px;margin-bottom:14px;box-shadow:0 16px 40px rgba(0,0,0,.22)}
+.card-title{font-size:19px;font-weight:800;color:var(--gold);margin-bottom:15px}
+.field{margin-bottom:12px}
+label{display:block;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:6px}
+input,select{width:100%;height:44px;padding:0 12px;background:#0C1729;color:#fff;border:1px solid rgba(245,200,66,.2);border-radius:10px;font-size:14px;outline:none}
+input:focus,select:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(245,200,66,.1)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.counts{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+.count{height:42px;border-radius:10px;border:1px solid rgba(245,200,66,.22);background:#0C1729;color:#9EABC0;font-weight:800;cursor:pointer}
+.count.active{background:linear-gradient(135deg,var(--gold2),var(--gold));color:#101522}
+.subject{background:#0C1729;border:1px solid rgba(245,200,66,.14);border-radius:12px;padding:11px;margin-top:9px}
+.subject-no{font-size:11px;color:var(--gold);font-weight:800;margin-bottom:7px}
+.subject-row{display:grid;grid-template-columns:1.3fr .75fr .9fr;gap:7px}
+.other{margin-top:7px}
+.btn{width:100%;height:46px;border:0;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer}
+.primary{background:linear-gradient(135deg,var(--gold2),var(--gold));color:#101522}
+.secondary{background:transparent;color:var(--gold);border:1px solid rgba(245,200,66,.3);margin-top:9px}
+.photo-box{border:1px dashed rgba(245,200,66,.35);border-radius:12px;padding:13px;text-align:center;background:#0C1729;margin-bottom:13px;cursor:pointer}
+.photo-box:hover{border-color:var(--gold)}
+.photo-box input{display:none}
+.upload-icon{font-size:30px;margin-bottom:6px}
+.upload-text{font-size:13px;color:var(--muted)}
+.upload-text strong{color:var(--gold)}
+.photo-preview-wrap{display:none;margin-top:11px}
+.photo-preview-wrap img{width:120px;aspect-ratio:1080/1030;object-fit:cover;border-radius:10px;border:2px solid var(--gold);box-shadow:0 0 16px rgba(245,200,66,.25)}
+/* ── crop modal ── */
+.crop-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:200;align-items:center;justify-content:center;padding:16px}
+.crop-modal.open{display:flex}
+.crop-container{width:100%;max-width:440px;background:#13213A;border:1px solid rgba(245,200,66,.2);border-radius:16px;padding:16px}
+.crop-title{font-size:14px;font-weight:800;color:var(--gold);margin-bottom:12px;text-align:center}
+#cropImage{display:block;max-width:100%;max-height:58vh}
+.crop-actions{display:flex;gap:10px;margin-top:14px}
+.crop-actions .btn{margin:0}
+.note{font-size:11px;line-height:1.5;color:var(--muted);margin-top:6px}
+.hidden{display:none!important}
+#resultCanvas{width:100%;max-width:420px;display:block;margin:auto;border-radius:15px;box-shadow:0 20px 50px rgba(0,0,0,.38)}
+.result-actions{margin-top:12px}
+.error{color:#ffb0b0;font-size:12px;margin-top:8px;display:none}
+@media(max-width:440px){.row,.subject-row{grid-template-columns:1fr}.counts{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-title">Mahavir Classes</div>
+  <div class="header-sub">School Unit Test Marks Frame Generator</div>
+</header>
+
+<main class="wrap">
+<section class="card" id="formCard">
+  <div class="card-title">Student & Unit Test Details</div>
+
+  <div class="field">
+    <label>Student Photo *</label>
+    <div class="photo-box" id="photoBox">
+      <div class="upload-icon" id="uploadIcon">📸</div>
+      <div class="upload-text" id="uploadText"><strong>Tap to upload student photo</strong><br>JPG or PNG, any size</div>
+      <input id="photoInput" type="file" accept="image/*">
+      <div class="photo-preview-wrap" id="photoPreviewWrap">
+        <img id="photoPreviewImg" alt="Cropped preview">
+      </div>
+    </div>
+    <div class="note">After choosing a photo you'll get a crop screen — drag/zoom to position the student exactly how it should appear in the frame's photo window, then tap Done.</div>
+  </div>
+
+  <div class="field">
+    <label>Student Name *</label>
+    <input id="name" maxlength="38" placeholder="Enter student's full name">
+  </div>
+
+  <div class="field">
+    <label>School Name *</label>
+    <select id="school">
+		<!-- <option value="">Select School</option>
+		<option value="Narayan Vidya Vihar">Narayan Vidya Vihar</option>
+        <option value="Class 12 Science">12 Science</option>
+        <option value="Class 12 Commerce">12 Commerce</option> -->
+	</select>
+  </div>
+
+  <div class="row">
+    <div class="field">
+      <label>Board *</label>
+      <select id="board">
+        <option value="">Select Board</option>
+        <option>GSEB</option>
+        <option>CBSE</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Standard *</label>
+      <select id="std">
+        <option value="">Select Standard</option>
+        <option>Std 6</option><option>Std 7</option><option>Std 8</option>
+        <option>Std 9</option><option>Std 10</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="field">
+    <label>How Many Subjects? *</label>
+    <div class="counts">
+      <button class="count active" type="button" data-count="1">1 Subject</button>
+      <button class="count" type="button" data-count="2">2 Subjects</button>
+      <button class="count" type="button" data-count="3">3 Subjects</button>
+      <button class="count" type="button" data-count="4">4 Subjects</button>
+    </div>
+  </div>
+
+  <div class="field">
+    <label>Subject-wise Marks *</label>
+    <div id="subjects"></div>
+    <div class="note">Subjects: Maths, Science, SST, English. Select the paper maximum marks for each subject.</div>
+  </div>
+
+  <div id="error" class="error"></div>
+  <button class="btn primary" id="generate">✨ Generate Result Frame</button>
+</section>
+
+<section class="card hidden" id="resultCard">
+  <div class="card-title">Your School Unit Test Frame</div>
+  <canvas id="resultCanvas" width="1080" height="1920"></canvas>
+  <div class="result-actions">
+    <button class="btn primary" id="download">⬇️ Download result.png</button>
+    <button class="btn secondary" id="again">🔄 Create Another</button>
+  </div>
+</section>
+</main>
+
+<div class="crop-modal" id="cropModal">
+  <div class="crop-container">
+    <div class="crop-title">✂️ Position the photo in the frame window</div>
+    <img id="cropImage" alt="Crop">
+    <div class="crop-actions">
+      <button class="btn secondary" id="cropCancel" type="button">Cancel</button>
+      <button class="btn primary" id="cropDone" type="button">Done</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/*
+  FRAME IMAGE — loaded from a file, not embedded in the code.
+  Keep a file named exactly "frame.png" (1080x1920, with real alpha
+  transparency for the photo window) in the SAME FOLDER as this
+  index.html file. To use a different design in future, just replace
+  frame.png with the new artwork — no code changes needed anywhere in
+  this file. See FRAME_SRC below and frame.src near the bottom of this
+  script.
+
+  It already has genuine alpha transparency — the middle window is
+  transparent (student photo goes here) and the bottom banner is a real
+  semi-transparent black gradient baked into the PNG, ending in the
+  opaque "School Unit Test Marks" title near the bottom.
+
+  Because the transparency is real, we do NOT need any colour-based
+  transparency hack any more: draw the photo first, then draw this frame
+  straight on top and the cut-out reveals the photo automatically.
+*/
+
+/*
+  IMPORTANT:
+  Replace the school names below with your actual school list.
+  No school names were supplied with the request, so the list intentionally
+  contains only the generic options below.
+*/
+/*
+  Path to the frame image, resolved relative to this index.html file.
+  Swap frames in future by replacing frame.png on disk — do not edit
+  this string unless you also rename the file.
+*/
+const FRAME_SRC = "frame.png";
+
+const SCHOOL_LIST = [
+  "Select School",
+  "Aditya Birla Public School", "Advait Vidyaniketan Bharuch", "Amicus International School", "Amity School", "Anand Niketan School , Bharuch", "Atmiya Green School", "Auxilium School Bharuch", "Delhi Public School Bharuch", "Holy Angels’ Convent School", "J.B. Modi Vidhyalaya", "Jay Ambe International School", "K.G.M. Vidyalaya", "Narayan Vidya Vihar School (N.V.V)", "Narmada Vidyalaya (GNFC)", "Prarthana Vidhyalaya", "Queen of Angels' Convent Higher Secondary School", "RMPS International School Ankleshwar", "Sabari Vidya Peedom English Medium School", "Shree Gayatri Vidhya Mandir , Bharuch", "Shri Niranjan Prasad Saraswat Public School (SNPS)", "Shri Sa'd Vidhya Mandal School", "Smt Maniba Chunilal Patel Sanskar Vidya Bhavan", "Swaminarayan Goodwill School", "Unnati Vidhyalay Bharuch", "Nidhi Vidya Bhavan Bharuch", "Narmada High School , Shuklatirth", "Kalorex Future", "Sarswati Vidhyamandir", "Shravan Vidhyadham", "Unnati VIdhya Bhavan , Bharuch",
+  "Other / Enter School Name"
+];
+
+const SUBJECTS = ["Maths","Science","SST","English"];
+let subjectCount = 1;
+let studentPhoto = null;
+
+const schoolEl = document.getElementById("school");
+SCHOOL_LIST.forEach((s,i)=>{
+  const o=document.createElement("option");
+  o.value=i===0?"":s;
+  o.textContent=s;
+  schoolEl.appendChild(o);
+});
+
+function buildSubjects(){
+  const box=document.getElementById("subjects");
+  box.innerHTML="";
+  for(let i=0;i<subjectCount;i++){
+    const d=document.createElement("div");
+    d.className="subject";
+    d.innerHTML=`
+      <div class="subject-no">SUBJECT ${i+1}</div>
+      <div class="subject-row">
+        <select class="sub">
+          <option value="">Select Subject</option>
+          ${SUBJECTS.map(s=>`<option>${s}</option>`).join("")}
+        </select>
+        <input class="marks" type="number" min="0" step="0.5" placeholder="Marks">
+        <select class="total">
+          <option value="25">Out of 25</option>
+          <option value="30">Out of 30</option>
+          <option value="40">Out of 40</option>
+          <option value="50">Out of 50</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <input class="other hidden" type="number" min="1" placeholder="Enter paper maximum marks">
+    `;
+    box.appendChild(d);
+    d.querySelector(".total").addEventListener("change",e=>{
+      d.querySelector(".other").classList.toggle("hidden",e.target.value!=="other");
+    });
+  }
+}
+buildSubjects();
+
+document.querySelectorAll(".count").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    subjectCount=Number(btn.dataset.count);
+    document.querySelectorAll(".count").forEach(b=>b.classList.remove("active"));
+    btn.classList.add("active");
+    buildSubjects();
+  });
+});
+
+/*
+  Photo window aspect ratio — must match the box used in drawPhoto() below
+  (900 x 1180, a proper standing/portrait rectangle instead of the old
+  near-square crop) so what the user positions in the crop screen is
+  exactly what lands behind the frame's cut-out.
+*/
+/*
+  Photo aspect ratio for the crop screen — locked to a true 9:16, the
+  same shape as the full 1080x1920 canvas/frame, per the user's photo.
+  This must match drawPhoto()'s width-only scale logic below: since 9:16
+  is narrower than the photo box, fitting by width alone already covers
+  the box height too — no need for a max()/"cover" comparison anymore.
+*/
+const PHOTO_RATIO = 9/16;
+let cropper=null;
+
+const photoInput=document.getElementById("photoInput");
+document.getElementById("photoBox").addEventListener("click",()=>photoInput.click());
+photoInput.addEventListener("click",e=>e.stopPropagation());
+
+const cropModal=document.getElementById("cropModal");
+const cropImage=document.getElementById("cropImage");
+
+photoInput.addEventListener("change",e=>{
+  const file=e.target.files[0];
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload=()=>{
+    cropImage.src=reader.result;
+    cropModal.classList.add("open");
+    if(cropper){cropper.destroy();cropper=null}
+    cropImage.onload=()=>{
+      cropper=new Cropper(cropImage,{
+        aspectRatio:PHOTO_RATIO,
+        viewMode:1,
+        autoCropArea:0.95,
+        responsive:true,
+        background:false
+      });
+    };
+  };
+  reader.readAsDataURL(file);
+});
+
+document.getElementById("cropDone").addEventListener("click",()=>{
+  if(!cropper) return;
+  const cropped=cropper.getCroppedCanvas({width:1080,height:1920});
+  const dataUrl=cropped.toDataURL("image/png");
+  const img=new Image();
+  img.onload=()=>{studentPhoto=img};
+  img.src=dataUrl;
+
+  document.getElementById("photoPreviewImg").src=dataUrl;
+  document.getElementById("photoPreviewWrap").style.display="block";
+  document.getElementById("uploadIcon").textContent="✅";
+  document.getElementById("uploadText").innerHTML="<strong>Photo ready!</strong><br>Tap to change";
+
+  cropper.destroy();cropper=null;
+  cropModal.classList.remove("open");
+});
+
+document.getElementById("cropCancel").addEventListener("click",()=>{
+  if(cropper){cropper.destroy();cropper=null}
+  cropModal.classList.remove("open");
+  photoInput.value="";
+});
+
+function showError(msg){
+  const e=document.getElementById("error");
+  e.textContent=msg;e.style.display="block";
+}
+function clearError(){document.getElementById("error").style.display="none"}
+
+function getSchool(){
+  let v=schoolEl.value;
+  if(v==="Other / Enter School Name"){
+    v=prompt("Enter school name:");
+    if(v) schoolEl.value="Other / Enter School Name";
+  }
+  return v;
+}
+
+function collect(){
+  clearError();
+  if(!studentPhoto){showError("Please upload the student's photo.");return null}
+  const name=document.getElementById("name").value.trim();
+  const school=getSchool();
+  const board=document.getElementById("board").value;
+  const std=document.getElementById("std").value;
+  if(!name||!school||!board||!std){showError("Please complete Student Name, School, Board and Standard.");return null}
+
+  const subjects=[];
+  const used=new Set();
+  for(const row of document.querySelectorAll(".subject")){
+    const sub=row.querySelector(".sub").value;
+    const marks=Number(row.querySelector(".marks").value);
+    const sel=row.querySelector(".total").value;
+    const custom=Number(row.querySelector(".other").value);
+    const total=sel==="other"?custom:Number(sel);
+    if(!sub||!Number.isFinite(marks)||!Number.isFinite(total)||total<=0||marks<0||marks>total){
+      showError("Please enter valid marks and paper total for every subject.");return null;
+    }
+    if(used.has(sub)){showError("Please select different subjects in each row.");return null}
+    used.add(sub);
+    subjects.push({sub,marks,total});
+  }
+  return {name,school,board,std,subjects};
+}
+
+function fit(ctx,text,max,start,min){
+  for(let s=start;s>=min;s-=2){
+    ctx.font=`800 ${s}px Arial`;
+    if(ctx.measureText(text).width<=max)return s;
+  }
+  return min;
+}
+
+function rr(ctx,x,y,w,h,r){
+  r=Math.min(r,w/2,h/2);
+  ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);
+  ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);
+  ctx.arcTo(x,y,x+w,y,r);ctx.closePath();
+}
+
+/*
+  Photo placement — recalibrated for Result.png.
+  The frame's transparent cut-out window sits roughly between
+  x:150-930 and y:0-1000 (checked pixel-by-pixel against the supplied
+  Result.png alpha channel), which is why the crop screen locks onto a
+  900x1180 box (PHOTO_RATIO above) — a standing/portrait rectangle,
+  centred horizontally and taller than before so the photo fills more of
+  the window with no dead space. The photo the user crops is already the
+  exact shape of this box, so this is a straight draw with a cover-fit
+  safety net in case of any rounding from the crop step.
+*/
+function drawPhoto(ctx,img){
+  /*
+    Full-bleed: box now spans the ENTIRE canvas width (0 to 1080, no
+    side margins at all) so the photo covers the whole top area
+    edge-to-edge, with only the frame's own artwork (logo, watermark,
+    gradient, text) drawn on top of it. Width-only scale still works
+    since the guaranteed 9:16 photo (0.5625) is narrower than this
+    full-width box's ratio (1080/1180 ≈ 0.915), so fitting by width
+    alone already covers the full box height.
+  */
+  const x=0,y=0,w=1080,h=1920;
+  const scale=w/img.width;
+  const dw=img.width*scale,dh=img.height*scale;
+  const dx=x+(w-dw)/2;
+  const targetTop=y-(dh-h)/2;
+  ctx.save();
+  ctx.beginPath();ctx.rect(x,y,w,h);ctx.clip();
+  ctx.drawImage(img,dx,targetTop,dw,dh);
+  ctx.restore();
+}
+
+function render(data){
+  const canvas=document.getElementById("resultCanvas");
+  const ctx=canvas.getContext("2d");
+  const W=1080,H=1920;
+  ctx.clearRect(0,0,W,H);
+
+  const frame=new Image();
+  frame.onload=()=>{
+    // 1. Photo goes UNDER the frame — it shows through the frame's real
+    //    transparent cut-out automatically, no colour-masking needed.
+    drawPhoto(ctx,studentPhoto);
+
+    // 2. Draw the supplied frame straight on top (unmodified). It already
+    //    contains the cut-out, the logo, the watermark and the dark
+    //    bottom banner + "School Unit Test Marks" title as real pixels.
+    ctx.drawImage(frame,0,0,W,H);
+
+    // 3. A little extra readability gradient in the banner zone (below the
+    //    now-taller photo window, above the baked-in title) so the
+    //    name/marks stay legible no matter how bright the uploaded photo
+    //    is. It starts at 0 opacity right where the photo ends so it
+    //    never darkens the visible photo, and fades in gradually.
+    const panelY=1920,panelH=560;
+    const grd=ctx.createLinearGradient(0,panelY,0,panelY+panelH);
+    grd.addColorStop(0,"rgba(4,8,16,0)");
+    grd.addColorStop(.28,"rgba(4,8,16,.4)");
+    grd.addColorStop(1,"rgba(4,8,16,.68)");
+    ctx.fillStyle=grd;ctx.fillRect(0,panelY,W,panelH);
+
+    // 4. Student info — placed right after the (now taller) photo window
+    //    and before the marks cards, leaving the baked-in title
+    //    ("School Unit Test Marks", ~starts y:1700) untouched below.
+    ctx.textAlign="center";
+    const ns=fit(ctx,data.name.toUpperCase(),900,60,30);
+    ctx.font=`1200 ${ns}px Arial`;
+    ctx.fillStyle="#FFFFFF";
+    ctx.shadowColor="rgba(0,0,0,.7)";ctx.shadowBlur=10;
+    ctx.fillText(data.name.toUpperCase(),W/2,1490);
+
+    const ss=fit(ctx,data.school,900,32,18);
+    ctx.font=`700 ${ss}px Arial`;
+    ctx.fillStyle="#F5C842";
+    ctx.fillText(data.school,W/2,1538);
+
+    ctx.font="700 26px Arial";
+    ctx.fillStyle="#FFFFFF";
+    ctx.fillText(`${data.board}  •  ${data.std}`,W/2,1580);
+    ctx.shadowBlur=0;
+
+    // 5. Subject marks — dynamic 1/2/3/4-subject layout, NO total score.
+    const n=data.subjects.length;
+    const y=1600;
+    const gap=16;
+    const totalW=900;
+    const cardW=n===1?900:(totalW-gap*(n-1))/n;
+    const cardH=n===1?190:n===2?165:n===3?150:140;
+
+    data.subjects.forEach((s,i)=>{
+      const x=90+i*(cardW+gap);
+      rr(ctx,x,y,cardW,cardH,20);
+      const cg=ctx.createLinearGradient(x,y,x+cardW,y+cardH);
+      cg.addColorStop(0,"rgba(12,200,181,.22)");
+      cg.addColorStop(1,"rgba(245,200,66,.15)");
+      ctx.fillStyle=cg;ctx.fill();
+      ctx.strokeStyle="rgba(245,200,66,.45)";ctx.lineWidth=2;ctx.stroke();
+
+      ctx.textAlign="center";
+      const subSize=fit(ctx,s.sub.toUpperCase(),cardW-30,n===1?38:25,16);
+      ctx.font=`800 ${subSize}px Arial`;
+      ctx.fillStyle="#F5C842";
+      ctx.fillText(s.sub.toUpperCase(),x+cardW/2,y+(n===1?50:38));
+
+      const mark=Number.isInteger(s.marks)?String(s.marks):s.marks.toFixed(1);
+      const total=Number.isInteger(s.total)?String(s.total):s.total.toFixed(1);
+      const big=n===1?90:n===2?61:n===3?52:45;
+      ctx.font=`900 ${big}px Arial`;
+      ctx.fillStyle="#FFFFFF";
+      ctx.fillText(mark,x+cardW/2,y+(n===1?121:95));
+      ctx.font=`700 ${n===1?22:17}px Arial`;
+      ctx.fillStyle="#C7D0DE";
+      ctx.fillText("OUT OF "+total,x+cardW/2,y+(n===1?158:126));
+    });
+
+    // 6. A short congratulatory line under the marks, filling the space
+    //    that used to sit empty above the frame's baked-in title.
+    const congratsY=y+cardH+25;
+    ctx.font="700 25px Arial";
+    ctx.fillStyle="#F5C842";
+    ctx.shadowColor="rgba(0,0,0,.6)";ctx.shadowBlur=8;
+    ctx.fillText("🎉 Congratulations, keep shining! 🎉",W/2,congratsY);
+    ctx.shadowBlur=0;
+
+    // Save result image.
+    window.__resultURL=canvas.toDataURL("image/png");
+    document.getElementById("formCard").classList.add("hidden");
+    document.getElementById("resultCard").classList.remove("hidden");
+    window.scrollTo({top:0,behavior:"smooth"});
+  };
+  frame.src=FRAME_SRC;
+}
+
+document.getElementById("generate").addEventListener("click",()=>{
+  const data=collect();
+  if(data)render(data);
+});
+
+document.getElementById("download").addEventListener("click",()=>{
+  if(!window.__resultURL)return;
+  const a=document.createElement("a");
+  a.href=window.__resultURL;
+  a.download="result.png";
+  a.click();
+});
+
+document.getElementById("again").addEventListener("click",()=>{
+  document.getElementById("resultCard").classList.add("hidden");
+  document.getElementById("formCard").classList.remove("hidden");
+  window.scrollTo({top:0,behavior:"smooth"});
+});
+</script>
+</body>
+</html>
